@@ -18,6 +18,24 @@ Usage
     (add-to-list 'erc-modules 'hipchatify)
     (erc-update-modules)
 
+Adding your token to Mac OS X Keychain
+--------------------------------------
+
+After you generate your `HipChat token
+<https://atlassian.hipchat.com/account/api>`_, you can add it to your keychain
+like so:
+
+.. image:: figures/keychain.png
+   :align: center
+   :width: 30%
+
+Which you can then use :code:`/usr/bin/security` to retreive:
+
+.. code:: bash
+
+   $ /usr/bin/security find-internet-password -wa smf/token -s hipchat.com
+   TOKEN
+
 Credits
 -------
 
