@@ -94,12 +94,20 @@ https://atlassian.hipchat.com/account/api"
       (setq erc-hipchatify--icons (make-hash-table :test 'equal))
       (erc-hipchatify--request-icons)))
 
+(defun erc-hipchatify-pre-hook (string)
+  "Doesn't display anything from <Link> since it's mostly
+garabled html; we'll be rendering most of that stuff ourselves"
+  (if (s-starts-with? "<Link>" string)
+      (setq erc-insert-this nil)))
+
 ;;;###autoload
 (eval-after-load 'erc
   '(define-erc-module hipchatify nil
      "Show hipchat emoticons and render html"
-     ((add-hook 'erc-after-connect 'erc-hipchatify-connect t))
-     ((remove-hook 'erc-after-connect 'erc-hipchatify-connect))
+     ((add-hook 'erc-after-connect 'erc-hipchatify-connect t)
+      (add-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook))
+     ((remove-hook 'erc-after-connect 'erc-hipchatify-connect)
+      (remove-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook))
      t))
 
 (provide 'erc-hipchatify)
