@@ -251,16 +251,68 @@ window isn't in focus / visible"
                      (not (eq (current-buffer) (window-buffer (selected-window)))))
                 (alert msg)))))))
 
+(defun erc-hipchatify-render-html ()
+  "Modify the buffer to replace (icon) with an html img tag, then
+render the whole message. For some text emoticons, such
+as (shrug) we just use the actual text-based representation.
+
+Also, skip messages that don't begin with '<' since those are irc
+messages."
+  (save-excursion
+    ;; use the fact that erc leaves the buffer narrowed so we can extract the
+    ;; string, we substract 1 from point-max so we don't get an extra newline
+    (let* ((origmsg (buffer-substring-no-properties (point-min) (1- (point-max)))))
+      (when (s-starts-with? "<" origmsg)
+        ;; now, search for the first "> " which indicates the end of the nickname
+        ;; and start of the message (adding two which is the length of "> ")
+        (let* ((startPos (+ 2 (s-index-of "> " origmsg)))
+               (newStart (+ (point-min) startPos))
+               (msg (substring origmsg startPos)))
+          ;; replace hipchat emoticons contained in parentheses
+          (when erc-hipchatify--icons
+            (goto-char newStart)
+            (while (re-search-forward "(\\([a-zA-Z0-9]+\\))" nil t)
+              (let* ((hp-shortcut (match-string-no-properties 1))
+                     (hp-link (gethash hp-shortcut erc-hipchatify--icons)))
+                (cond
+                 ((string-equal hp-shortcut "shrug")
+                  (replace-match "¯\\\\_(ツ)_/¯"))
+                 ((string-equal hp-shortcut "tableflip")
+                  (replace-match "(╯°□°）╯︵ ┻━┻"))
+                 ((string-equal hp-shortcut "owlflip")
+                  (replace-match "(ʘ∇ʘ)ク 彡 ┻━┻"))
+                 (hp-link
+                  (replace-match
+                   (format "<img alt=\"(%s)\" src=\"%s\" />" hp-shortcut hp-link)))))))
+          (shr-render-region newStart (1- (point-max)))
+          ;; rendering the region adds two lines before and after?
+          (goto-char newStart)
+          (when (char-equal (following-char) ?\n)
+            (delete-char 1)
+            (when (char-equal (following-char) ?\n)
+              (delete-char 1)))
+          ;; go to new point-max
+          (goto-char (- (point-max) 3))
+          (if (char-equal (following-char) ?\n)
+              (delete-char 1)
+            (forward-char))
+          (when (char-equal (following-char) ?\n)
+            (delete-char 1)))))))
+
 ;;;###autoload
 (eval-after-load 'erc
   '(define-erc-module hipchatify nil
      "Show hipchat emoticons and render html"
      ((add-hook 'erc-after-connect 'erc-hipchatify-connect t)
       (add-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
-      (add-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here))
+      (add-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
+      (add-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
+      (add-hook 'erc-send-modify-hook 'erc-hipchatify-render-html))
      ((remove-hook 'erc-after-connect 'erc-hipchatify-connect)
       (remove-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
-      (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here))
+      (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
+      (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
+      (remove-hook 'erc-send-modify-hook 'erc-hipchatify-render-html))
      t))
 
 (provide 'erc-hipchatify)
