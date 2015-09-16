@@ -337,6 +337,34 @@ and appends ')'"
   (add-to-list 'company-backends 'erc-hipchatify-nick-company-backend)
   (company-mode-on))
 
+(defun erc-cmd-ANIM (&rest msg)
+  (when msg
+      (erc-send-message (concat "/anim " (mapconcat 'identity msg " ")))))
+
+(defun erc-cmd-GIF (&rest msg)
+  (when msg
+      (erc-send-message (concat "/gif " (mapconcat 'identity msg " ")))))
+
+(defun erc-cmd-GIPHY (&rest msg)
+  (when msg
+      (erc-send-message (concat "/giphy " (mapconcat 'identity msg " ")))))
+
+(defun erc-cmd-IMG (&rest msg)
+  (when msg
+      (erc-send-message (concat "/img " (mapconcat 'identity msg " ")))))
+
+(defun erc-cmd-MEME (&rest msg)
+  (when msg
+      (erc-send-message (concat "/meme " (mapconcat 'identity msg " ")))))
+
+(defun erc-cmd-CODE (&rest msg)
+  (when msg
+      (erc-send-message (concat "/code " (mapconcat 'identity msg " ")))))
+
+(defun erc-cmd-QUOTE (&rest msg)
+  (when msg
+      (erc-send-message (concat "/quote " (mapconcat 'identity msg " ")))))
+
 ;;;###autoload
 (eval-after-load 'erc
   '(define-erc-module hipchatify nil
