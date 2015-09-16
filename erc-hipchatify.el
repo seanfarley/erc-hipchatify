@@ -231,14 +231,36 @@ garabled html; we'll be rendering most of that stuff ourselves"
   (if (s-starts-with? "<Link>" string)
       (setq erc-insert-this nil)))
 
+(defun erc-hipchatify-notify-here ()
+  "Check for '@here' in the message and alert the user if the
+window isn't in focus / visible"
+  (save-excursion
+    ;; use the fact that erc leaves the buffer narrowed so we can extract the
+    ;; string, we substract 1 from point-max so we don't get an extra newline
+    (let* ((origmsg (buffer-substring-no-properties (point-min) (1- (point-max)))))
+      (if (s-starts-with? "<" origmsg)
+          ;; now, search for the first "> " which indicates the end of the nickname
+          ;; and start of the message (adding two which is the length of "> ")
+          (let* ((startPos (+ 2 (s-index-of "> " origmsg)))
+                 (newStart (+ (point-min) startPos))
+                 (msg (substring origmsg startPos)))
+            ;; notify for @here
+            ;; TODO: figure out how to use erc notify natively
+            (when (and (s-contains? "@here" msg)
+                     ;; only alert if not in focus
+                     (not (eq (current-buffer) (window-buffer (selected-window)))))
+                (alert msg)))))))
+
 ;;;###autoload
 (eval-after-load 'erc
   '(define-erc-module hipchatify nil
      "Show hipchat emoticons and render html"
      ((add-hook 'erc-after-connect 'erc-hipchatify-connect t)
-      (add-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook))
+      (add-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
+      (add-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here))
      ((remove-hook 'erc-after-connect 'erc-hipchatify-connect)
-      (remove-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook))
+      (remove-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
+      (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here))
      t))
 
 (provide 'erc-hipchatify)
