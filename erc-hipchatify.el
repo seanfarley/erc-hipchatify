@@ -40,6 +40,7 @@
 
 
 (require 'alert) ;; TODO: figure out how to use native erc notifications
+(require 'company)
 (require 'erc)
 (require 'request)
 (require 's)
@@ -306,6 +307,25 @@ messages."
           (when (char-equal (following-char) ?\n)
             (delete-char 1)))))))
 
+(defun erc-hipchatify-icon-company-backend (command &optional arg &rest ignored)
+  "A company backend that uses the keys from the icon hash table
+and appends ')'"
+  (interactive (list 'interactive))
+  (cl-case command
+    (interactive (company-begin-backend 'erc-hipchatify-icon-company-backend))
+    (prefix (and (eq major-mode 'erc-mode)
+                 (company-grab-symbol-cons "(" 2))) ;; trigger when typing parenthesis
+    (candidates
+     (all-completions arg
+                      (mapcar
+                       (lambda (x) (concat x ")"))
+                       (hash-table-keys erc-hipchatify--icons))))))
+
+(defun erc-hipchatify-mode-hook ()
+  "Turn on company mode and register our backend"
+  (add-to-list 'company-backends 'erc-hipchatify-icon-company-backend)
+  (company-mode-on))
+
 ;;;###autoload
 (eval-after-load 'erc
   '(define-erc-module hipchatify nil
@@ -314,12 +334,14 @@ messages."
       (add-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
       (add-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
       (add-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
-      (add-hook 'erc-send-modify-hook 'erc-hipchatify-render-html))
+      (add-hook 'erc-send-modify-hook 'erc-hipchatify-render-html)
+      (add-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
      ((remove-hook 'erc-after-connect 'erc-hipchatify-connect)
       (remove-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
       (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
       (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
-      (remove-hook 'erc-send-modify-hook 'erc-hipchatify-render-html))
+      (remove-hook 'erc-send-modify-hook 'erc-hipchatify-render-html)
+      (remove-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
      t))
 
 (provide 'erc-hipchatify)
