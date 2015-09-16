@@ -268,6 +268,13 @@ messages."
         (let* ((startPos (+ 2 (s-index-of "> " origmsg)))
                (newStart (+ (point-min) startPos))
                (msg (substring origmsg startPos)))
+          ;; replace image looking links with an img tag
+          (goto-char (1- newStart))
+          (while (re-search-forward "[^\"]\\(http[^\s]+\\.\\(png\\|jpg\\|jpeg\\|gif\\|svg\\)\\)" nil t)
+            (replace-match
+             (format " <img alt=\"%s\" src=\"%s\"/>"
+                     (match-string-no-properties 1)
+                     (match-string-no-properties 1))))
           ;; replace hipchat emoticons contained in parentheses
           (when erc-hipchatify--icons
             (goto-char newStart)
