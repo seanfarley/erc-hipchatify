@@ -36,6 +36,13 @@ Which you can then use :code:`/usr/bin/security` to retreive:
    $ /usr/bin/security find-internet-password -wa smf/token -s hipchat.com
    TOKEN
 
+Prefixing '@' to usernames
+--------------------------
+
+Use the variable :code:`erc-hipchatify-mention-channels` to set the buffer
+names that are HipChat channels. For those buffers, any :code:`nick` will be
+changed to :code:`@nick`.
+
 Credits
 -------
 
