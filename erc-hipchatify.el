@@ -293,7 +293,7 @@ messages."
           ;; replace hipchat emoticons contained in parentheses
           (when erc-hipchatify--icons
             (goto-char newStart)
-            (while (re-search-forward "(\\([a-zA-Z0-9]+\\))" nil t)
+            (while (re-search-forward "(\\([a-zA-Z0-9_]+\\))" nil t)
               (let* ((hp-shortcut (match-string-no-properties 1))
                      (hp-link (gethash hp-shortcut erc-hipchatify--icons)))
                 (cond
