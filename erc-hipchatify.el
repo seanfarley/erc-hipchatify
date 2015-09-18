@@ -285,7 +285,7 @@ messages."
             (replace-match "(failed)"))
           ;; replace image looking links with an img tag
           (goto-char (1- newStart))
-          (while (re-search-forward "[^\"]\\(http[^\s]+\\.\\(png\\|jpg\\|jpeg\\|gif\\|svg\\)\\)" nil t)
+          (while (re-search-forward "[^\"]\\(http[^\s\n\t]+\\.\\(png\\|jpg\\|jpeg\\|gif\\|svg\\)[^\s\n\t]*\\)" nil t)
             (replace-match
              (format " <img alt=\"%s\" src=\"%s\"/>"
                      (match-string-no-properties 1)
