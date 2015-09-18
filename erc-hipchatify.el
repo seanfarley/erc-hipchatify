@@ -309,17 +309,14 @@ messages."
           (shr-render-region newStart (1- (point-max)))
           ;; rendering the region adds two lines before and after?
           (goto-char newStart)
+          (while (re-search-forward "\n\n" nil t)
+            (replace-match ""))
+          (goto-char newStart)
           (when (char-equal (following-char) ?\n)
-            (delete-char 1)
-            (when (char-equal (following-char) ?\n)
-              (delete-char 1)))
-          ;; go to new point-max
-          (goto-char (- (point-max) 3))
-          (if (char-equal (following-char) ?\n)
-              (delete-char 1)
-            (forward-char))
-          (when (char-equal (following-char) ?\n)
-            (delete-char 1)))))))
+            (delete-char 1))
+          (goto-char (point-max))
+          (when (not (char-equal (char-before) ?\n))
+            (insert-before-markers "\n")))))))
 
 (defun erc-hipchatify-icon-company-backend (command &optional arg &rest ignored)
   "A company backend that uses the keys from the icon hash table
