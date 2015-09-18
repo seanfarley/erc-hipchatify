@@ -247,13 +247,14 @@ window isn't in focus / visible"
           ;; and start of the message (adding two which is the length of "> ")
           (let* ((startPos (+ 2 (s-index-of "> " origmsg)))
                  (newStart (+ (point-min) startPos))
-                 (msg (substring origmsg startPos)))
+                 (msg (substring origmsg startPos))
+                 (usr (substring origmsg 1 (- startPos 2))))
             ;; notify for @here
             ;; TODO: figure out how to use erc notify natively
             (when (and (s-contains? "@here" msg)
                      ;; only alert if not in focus
                      (not (eq (current-buffer) (window-buffer (selected-window)))))
-                (alert msg)))))))
+                (alert msg :title usr)))))))
 
 (defun erc-hipchatify-render-html ()
   "Modify the buffer to replace (icon) with an html img tag, then
