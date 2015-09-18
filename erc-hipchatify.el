@@ -32,11 +32,7 @@
 ;; Since this plugin wraps `shr-render-region', it benefits from asynchronous
 ;; downloading.  To rescale images, set `shr-max-image-proportion'.
 ;;
-;; To keep rendered html on one line as much as possible, two shr functions
-;; need to be patched, `shr-insert' and `shr-tag-img'. I would like to fix this
-;; upstream in the future but patch them here as an experiment.
-;;
-;;; Code:
+;; Code:
 
 
 (require 'alert) ;; TODO: figure out how to use native erc notifications
@@ -69,136 +65,6 @@ https://atlassian.hipchat.com/account/api"
 (defvar erc-hipchatify--icons nil
   "Private hash table of HipChat emoticons")
 
-;; Monkey patch shr.el
-
-(defun shr-insert (text)
-  (when (and (eq shr-state 'image)
-	     (not (bolp))
-	     (not (string-match "\\`[ \t\n]+\\'" text)))
-    ;; (insert "\n")
-    (setq shr-state nil))
-  (cond
-   ((eq shr-folding-mode 'none)
-    (insert text))
-   (t
-    (when (and (string-match "\\`[ \t\n ]" text)
-	       (not (bolp))
-	       (not (eq (char-after (1- (point))) ? )))
-      (insert " "))
-    (dolist (elem (split-string text "[ \f\t\n\r\v ]+" t))
-      (when (and (bolp)
-		 (> shr-indentation 0))
-	(shr-indent))
-      ;; No space is needed behind a wide character categorized as
-      ;; kinsoku-bol, between characters both categorized as nospace,
-      ;; or at the beginning of a line.
-      (let (prev)
-	(when (and (> (current-column) shr-indentation)
-		   (eq (preceding-char) ? )
-		   (or (= (line-beginning-position) (1- (point)))
-		       (and (shr-char-breakable-p
-			     (setq prev (char-after (- (point) 2))))
-			    (shr-char-kinsoku-bol-p prev))
-		       (and (shr-char-nospace-p prev)
-			    (shr-char-nospace-p (aref elem 0)))))
-	  (delete-char -1)))
-      ;; The shr-start is a special variable that is used to pass
-      ;; upwards the first point in the buffer where the text really
-      ;; starts.
-      (unless shr-start
-	(setq shr-start (point)))
-      (insert elem)
-      (setq shr-state nil)
-      (let (found)
-	(while (and (> (current-column) shr-width)
-		    (> shr-width 0)
-		    (progn
-		      (setq found (shr-find-fill-point))
-		      (not (eolp))))
-	  (when (eq (preceding-char) ? )
-	    (delete-char -1))
-	  (insert "\n")
-	  (unless found
-	    ;; No space is needed at the beginning of a line.
-	    (when (eq (following-char) ? )
-	      (delete-char 1)))
-	  (when (> shr-indentation 0)
-	    (shr-indent))
-	  (end-of-line))
-	(if (<= (current-column) shr-width)
-	    (insert " ")
-	  ;; In case we couldn't get a valid break point (because of a
-	  ;; word that's longer than `shr-width'), just break anyway.
-	  (insert "\n")
-	  (when (> shr-indentation 0)
-	    (shr-indent)))))
-    (unless (string-match "[ \t\r\n ]\\'" text)
-      (delete-char -1)))))
-
-(defun shr-tag-img (cont &optional url)
-  (when (or url
-	    (and cont
-		 (> (length (cdr (assq :src cont))) 0)))
-    ;; (when (and (> (current-column) 0)
-	       ;; (not (eq shr-state 'image)))
-      ;; (insert "\n"))
-    (let ((alt (cdr (assq :alt cont)))
-	  (url (shr-expand-url (or url (cdr (assq :src cont))))))
-      (let ((start (point-marker)))
-	(when (zerop (length alt))
-	  (setq alt "*"))
-	(cond
-	 ((or (member (cdr (assq :height cont)) '("0" "1"))
-	      (member (cdr (assq :width cont)) '("0" "1")))
-	  ;; Ignore zero-sized or single-pixel images.
-	  )
-	 ((and (not shr-inhibit-images)
-	       (string-match "\\`data:" url))
-	  (let ((image (shr-image-from-data (substring url (match-end 0)))))
-	    (if image
-		(funcall shr-put-image-function image alt)
-	      (insert alt))))
-	 ((and (not shr-inhibit-images)
-	       (string-match "\\`cid:" url))
-	  (let ((url (substring url (match-end 0)))
-		image)
-	    (if (or (not shr-content-function)
-		    (not (setq image (funcall shr-content-function url))))
-		(insert alt)
-	      (funcall shr-put-image-function image alt))))
-	 ((or shr-inhibit-images
-	      (and shr-blocked-images
-		   (string-match shr-blocked-images url)))
-	  (setq shr-start (point))
-	  (let ((shr-state 'space))
-	    (if (> (string-width alt) 8)
-		(shr-insert (truncate-string-to-width alt 8))
-	      (shr-insert alt))))
-	 ((and (not shr-ignore-cache)
-	       (url-is-cached (shr-encode-url url)))
-	  (funcall shr-put-image-function (shr-get-image-data url) alt))
-	 (t
-	  (insert alt " ")
-	  (when (and shr-ignore-cache
-		     (url-is-cached (shr-encode-url url)))
-	    (let ((file (url-cache-create-filename (shr-encode-url url))))
-	      (when (file-exists-p file)
-		(delete-file file))))
-	  (url-queue-retrieve
-	   (shr-encode-url url) 'shr-image-fetched
-	   (list (current-buffer) start (set-marker (make-marker) (1- (point))))
-	   t t)))
-	(when (zerop shr-table-depth) ;; We are not in a table.
-	  (put-text-property start (point) 'keymap shr-map)
-	  (put-text-property start (point) 'shr-alt alt)
-	  (put-text-property start (point) 'image-url url)
-	  (put-text-property start (point) 'image-displayer
-			     (shr-image-displayer shr-content-function))
-	  (put-text-property start (point) 'help-echo
-			     (or (cdr (assq :title cont))
-				 alt)))
-	(setq shr-state 'image)))))
-;; End monkey patch
 
 (defun erc-hipchatify--process-request (data)
   (let ((startIndex (assoc-default 'startIndex data))
@@ -322,6 +188,12 @@ messages."
           (goto-char newStart)
           (while (re-search-forward "\n\n" nil t)
             (replace-match ""))
+          (goto-char newStart)
+          (while (re-search-forward "\n" nil t)
+            (replace-match " "))
+          (goto-char newStart)
+          (when (char-equal (following-char) ? )
+            (delete-char 1))
           (goto-char newStart)
           (when (char-equal (following-char) ?\n)
             (delete-char 1))
