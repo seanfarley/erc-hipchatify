@@ -273,6 +273,16 @@ messages."
         (let* ((startPos (+ 2 (s-index-of "> " origmsg)))
                (newStart (+ (point-min) startPos))
                (msg (substring origmsg startPos)))
+          ;; replace bamboo img tags with hipchat emoticons
+          (goto-char newStart)
+          (while (search-forward "<img src=\"https://bamboo.bb-inf.net/images/iconsv4/icon-build-queued.png\" alt=\"icon-build-queued.png\">" nil t)
+            (replace-match "(continue)"))
+          (goto-char newStart)
+          (while (search-forward "<img src=\"https://devtools-bamboo.internal.atlassian.com/images/iconsv4/icon-build-successful.png\" alt=\"icon-build-successful.png\" width=\"16\" height=\"16\">" nil t)
+            (replace-match "(successful)"))
+          (goto-char newStart)
+          (while (search-forward "<img src=\"https://devtools-bamboo.internal.atlassian.com/images/iconsv4/icon-build-failed.png\" alt=\"icon-build-failed.png\" width=\"16\" height=\"16\">" nil t)
+            (replace-match "(failed)"))
           ;; replace image looking links with an img tag
           (goto-char (1- newStart))
           (while (re-search-forward "[^\"]\\(http[^\s]+\\.\\(png\\|jpg\\|jpeg\\|gif\\|svg\\)\\)" nil t)
