@@ -103,8 +103,11 @@ https://atlassian.hipchat.com/account/api"
 (defun erc-hipchatify-pre-hook (string)
   "Doesn't display anything from <Link> since it's mostly
 garabled html; we'll be rendering most of that stuff ourselves"
-  (if (s-starts-with? "<Link>" string)
-      (setq erc-insert-this nil)))
+  (cond
+   ((s-starts-with? "<Link>" string)
+    (setq erc-insert-this nil))
+   ((s-starts-with? "<Bamboo>" string)
+    (setq erc-insert-this nil))))
 
 (defun erc-hipchatify-notify-here ()
   "Check for '@here' in the message and alert the user if the
