@@ -331,6 +331,7 @@ and appends ')'"
   (cl-case command
     (interactive (company-begin-backend 'erc-hipchatify-icon-company-backend))
     (prefix (and (eq major-mode 'erc-mode)
+                 ;; TODO: figure out how to trigger this correctly
                  (company-grab-symbol-cons "(" 2))) ;; trigger when typing parenthesis
     (candidates
      (all-completions arg
