@@ -223,8 +223,11 @@ https://atlassian.hipchat.com/account/api"
 
 (defun erc-hipchatify-connect (server nick)
   (when (and erc-hipchatify-token (string-equal server erc-hipchatify-server))
-      (setq erc-hipchatify--icons (make-hash-table :test 'equal))
-      (erc-hipchatify--request-icons)))
+    (setq erc-hipchatify--icons (make-hash-table :test 'equal))
+    ;; apparently these are missing?
+    (puthash "thumbsup" "https://dujrsrsgsd3nh.cloudfront.net/img/emoticons/thumbs_up.png" erc-hipchatify--icons)
+    (puthash "thumbsdown" "https://dujrsrsgsd3nh.cloudfront.net/img/emoticons/thumbs_down.png" erc-hipchatify--icons)
+    (erc-hipchatify--request-icons)))
 
 (defun erc-hipchatify-pre-hook (string)
   "Doesn't display anything from <Link> since it's mostly
