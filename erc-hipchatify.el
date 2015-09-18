@@ -308,7 +308,11 @@ messages."
                  (hp-link
                   (replace-match
                    (format "<img alt=\"(%s)\" src=\"%s\" />" hp-shortcut hp-link)))))))
+          ;; subtract the length of the username from shr-width so that
+          ;; wrapping works
+          (setq shr-width (1- (- oldWidth (- newStart oldStart))))
           (shr-render-region newStart (1- (point-max)))
+          (setq shr-width oldWidth)
           ;; rendering the region adds two lines before and after?
           (goto-char newStart)
           (while (re-search-forward "\n\n" nil t)
