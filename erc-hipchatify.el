@@ -159,7 +159,16 @@ messages."
           (goto-char newStart)
           (while (search-forward "<img src=\"https://devtools-bamboo.internal.atlassian.com/images/iconsv4/icon-build-failed.png\" alt=\"icon-build-failed.png\" width=\"16\" height=\"16\">" nil t)
             (replace-match "(failed)"))
+          ;; TODO: replace with customized function
           ;; replace image looking links with an img tag
+          ;; imgur
+          (goto-char (1- newStart))
+          (while (re-search-forward "[^\"]\\(http[s]*://\\(www\\.\\)?imgur\\.com\\)/\\([^/\s\n\t]+\\)[\s\n\t$]" nil t)
+            (replace-match
+             (format " <img alt=\"%s\" src=\"http://imgur.com/download/%s\"/> "
+                     (concat (match-string-no-properties 1) "/" (match-string-no-properties 3))
+                     (match-string-no-properties 3))))
+          ;; link that ends in an image extension
           (goto-char (1- newStart))
           (while (re-search-forward "[^\"]\\(http[^\s\n\t]+\\.\\(png\\|jpg\\|jpeg\\|gif\\|svg\\)[^\s\n\t]*\\)" nil t)
             (replace-match
