@@ -163,11 +163,14 @@ messages."
           ;; replace image looking links with an img tag
           ;; imgur
           (goto-char (1- newStart))
-          (while (re-search-forward "[^\"]\\(http[s]*://\\(www\\.\\)?imgur\\.com\\)/\\([^/\s\n\t]+\\)[\s\n\t$]" nil t)
+          (while (re-search-forward "[^\"]\\(http[s]*://\\(www\\.\\)?imgur\\.com\\)\\(/gallery\\)?/\\([^/\s\n\t]+\\)[\s\n\t$]" nil t)
             (replace-match
              (format " <img alt=\"%s\" src=\"http://imgur.com/download/%s\"/> "
-                     (concat (match-string-no-properties 1) "/" (match-string-no-properties 3))
-                     (match-string-no-properties 3))))
+                     (concat (match-string-no-properties 1)
+                             (match-string-no-properties 3)
+                             "/"
+                             (match-string-no-properties 4))
+                     (match-string-no-properties 4))))
           ;; link that ends in an image extension
           (goto-char (1- newStart))
           (while (re-search-forward "[^\"]\\(http[^\s\n\t]+\\.\\(png\\|jpg\\|jpeg\\|gif\\|svg\\)[^\s\n\t]*\\)" nil t)
