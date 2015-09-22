@@ -125,7 +125,8 @@ window isn't in focus / visible"
                  (usr (substring origmsg 1 (- startPos 2))))
             ;; notify for @here
             ;; TODO: figure out how to use erc notify natively
-            (when (and (s-contains? "@here" msg)
+            (when (and (or (s-contains? "@here" msg)
+                           (s-contains? "@all" msg))
                      ;; only alert if not in focus
                      (not (eq (current-buffer) (window-buffer (selected-window)))))
                 (alert msg :title usr)))))))
