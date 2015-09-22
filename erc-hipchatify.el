@@ -61,6 +61,11 @@ https://atlassian.hipchat.com/account/api"
   :group 'erc-hipchatify
   :type 'string)
 
+(defcustom erc-hipchatify-mention-channels nil
+  "The name of the HipChat BitlBee channels for @mention replacement"
+  :group 'erc-hipchatify
+  :type 'list)
+
 (defvar erc-hipchatify--icons nil
   "Private hash table of HipChat emoticons")
 
@@ -339,20 +344,9 @@ and appends ')'"
                        (lambda (x) (concat x ")"))
                        (hash-table-keys erc-hipchatify--icons))))))
 
-(defun erc-hipchatify-nick-company-backend (command &optional arg &rest ignored)
-  "A company backend that triggers nick completion with '@'"
-  (interactive (list 'interactive))
-  (cl-case command
-    (interactive (company-begin-backend 'erc-hipchatify-icon-company-backend))
-    (prefix (and (eq major-mode 'erc-mode)
-                 (company-grab-symbol-cons "@" 2))) ;; trigger when typing parenthesis
-    (candidates
-     (all-completions arg (smf/user-keys erc-channel-users)))))
-
 (defun erc-hipchatify-mode-hook ()
   "Turn on company mode and register our backend"
   (add-to-list 'company-backends 'erc-hipchatify-icon-company-backend)
-  (add-to-list 'company-backends 'erc-hipchatify-nick-company-backend)
   (company-mode-on))
 
 (defun erc-cmd-ANIM (&rest msg)
@@ -383,6 +377,17 @@ and appends ')'"
   (when msg
       (erc-send-message (concat "/quote " (mapconcat 'identity msg " ")))))
 
+(defun erc-hipchatify-mention-send-modify (msg)
+  (when (member (buffer-name) erc-hipchatify-mention-channels)
+    (setq erc-send-this nil)
+    (erc-send-message
+     (replace-regexp-in-string "\\b\\([a-zA-Z0-9|_]+\\)\\b"
+                               (lambda (s) (save-match-data
+                                             (if (gethash (s-downcase s) erc-channel-users)
+                                                 (concat "@" s)
+                                               s)))
+                               msg))))
+
 ;;;###autoload
 (eval-after-load 'erc
   '(define-erc-module hipchatify nil
@@ -392,12 +397,14 @@ and appends ')'"
       (add-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
       (add-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
       (add-hook 'erc-send-modify-hook 'erc-hipchatify-render-html)
+      (add-hook 'erc-send-pre-hook 'erc-hipchatify-mention-send-modify)
       (add-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
      ((remove-hook 'erc-after-connect 'erc-hipchatify-connect)
       (remove-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
       (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
       (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
       (remove-hook 'erc-send-modify-hook 'erc-hipchatify-render-html)
+      (remove-hook 'erc-send-pre-hook 'erc-hipchatify-mention-send-modify)
       (remove-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
      t))
 
