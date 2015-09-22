@@ -7,7 +7,7 @@ palatable. Note worth features:
 * download HipChat emoticons (eg. (awyeah))
 * provide company backend for emoticons and @ completions
 * render html and images (png/jpg/gif/svg) via shr
-* notify @here mentions
+* notify 'here' and 'all' mentions
 
 Usage
 -----
