@@ -228,7 +228,8 @@ and appends ')'"
                  (match-string 0))))
     (candidates
      (remove-if-not
-      (lambda (c) (string-prefix-p arg c))
+      (lambda (c) (cl-subsetp (string-to-list arg)
+                               (string-to-list c)))
       (mapcar
        (lambda (x) (concat "(" x ")"))
        (hash-table-keys erc-hipchatify--icons))))))
