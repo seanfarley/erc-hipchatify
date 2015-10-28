@@ -224,16 +224,18 @@ and appends ')'"
   (cl-case command
     (interactive (company-begin-backend 'erc-hipchatify-icon-company-backend))
     (prefix (and (eq major-mode 'erc-mode)
-                 ;; TODO: figure out how to trigger this correctly
-                 (company-grab-symbol-cons "(" 2))) ;; trigger when typing parenthesis
+                 (when (looking-back "([[:alnum:]]*")
+                 (match-string 0))))
     (candidates
-     (all-completions arg
-                      (mapcar
-                       (lambda (x) (concat x ")"))
-                       (hash-table-keys erc-hipchatify--icons))))))
+     (remove-if-not
+      (lambda (c) (string-prefix-p arg c))
+      (mapcar
+       (lambda (x) (concat "(" x ")"))
+       (hash-table-keys erc-hipchatify--icons))))))
 
 (defun erc-hipchatify-mode-hook ()
   "Turn on company mode and register our backend"
+  (setq-local company-auto-complete-chars '(?\())
   (add-to-list 'company-backends 'erc-hipchatify-icon-company-backend)
   (company-mode-on))
 
