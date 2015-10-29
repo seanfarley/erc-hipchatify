@@ -217,6 +217,12 @@ messages."
           (when (not (char-equal (char-before) ?\n))
             (insert-before-markers "\n")))))))
 
+(defun erc-button-remove-old-buttons ()
+  "Seriously, what the hell.
+This method is defined in `erc-button' but throws a huge wrench
+into `shr-render-region'. Is this method even needed?"
+  nil)
+
 (defun erc-hipchatify-icon-company-backend (command &optional arg &rest ignored)
   "A company backend that uses the keys from the icon hash table
 and appends ')'"
