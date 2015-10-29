@@ -179,6 +179,9 @@ messages."
              (format " <img alt=\"%s\" src=\"%s\"/>"
                      (match-string-no-properties 1)
                      (match-string-no-properties 1))))
+          ;; replace '<3', '<-', and such with &lt;
+          (while (re-search-forward "<\\([-0-9/]+\\)" nil t)
+            (replace-match (concat "&lt;" (match-string-no-properties 1))))
           ;; replace hipchat emoticons contained in parentheses
           (when erc-hipchatify--icons
             (goto-char newStart)
