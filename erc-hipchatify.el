@@ -41,6 +41,7 @@
 (require 'request)
 (require 's)
 (require 'shr)
+(require 'flx-ido)
 
 (defgroup erc-hipchatify nil
   "Enable hipchatify."
@@ -236,12 +237,10 @@ and appends ')'"
                  (when (looking-back "([[:alnum:]]*")
                  (match-string 0))))
     (candidates
-     (remove-if-not
-      (lambda (c) (cl-subsetp (string-to-list arg)
-                               (string-to-list c)))
-      (mapcar
-       (lambda (x) (concat "(" x ")"))
-       (hash-table-keys erc-hipchatify--icons))))))
+     (flx-flex-match arg
+                     (mapcar
+                      (lambda (x) (concat "(" x ")"))
+                      (hash-table-keys erc-hipchatify--icons))))))
 
 (defun erc-hipchatify-mode-hook ()
   "Turn on company mode and register our backend"
