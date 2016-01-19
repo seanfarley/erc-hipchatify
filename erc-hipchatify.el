@@ -66,6 +66,53 @@ https://atlassian.hipchat.com/account/api"
 (defvar erc-hipchatify--icons nil
   "Private hash table of HipChat emoticons")
 
+(defcustom erc-hipchatify-tags '("html"
+                                 "body"
+                                 "style"
+                                 "script"
+                                 "svg"
+                                 "sup"
+                                 "sub"
+                                 "label"
+                                 "p"
+                                 "div"
+                                 "s"
+                                 "del"
+                                 "b"
+                                 "i"
+                                 "em"
+                                 "strong"
+                                 "u"
+                                 "tt"
+                                 "base"
+                                 "a"
+                                 "object"
+                                 "video"
+                                 "img"
+                                 "audio"
+                                 "pre"
+                                 "blockquote"
+                                 "dl"
+                                 "dt"
+                                 "dd"
+                                 "ul"
+                                 "ol"
+                                 "li"
+                                 "br"
+                                 "span"
+                                 "h1"
+                                 "h2"
+                                 "h3"
+                                 "h4"
+                                 "h5"
+                                 "h6"
+                                 "hr"
+                                 "title"
+                                 "font"
+                                 "table")
+  "The list of tags supported by shr; unknown tags will be escaped"
+  :group 'erc-hipchatify
+  :type 'list)
 
 (defun erc-hipchatify--process-request (data)
   (let ((startIndex (assoc-default 'startIndex data))
@@ -151,6 +198,14 @@ messages."
         (let* ((startPos (+ 2 (s-index-of "> " origmsg)))
                (newStart (+ (point-min) startPos))
                (msg (substring origmsg startPos)))
+          ;; before we do anything, escape '<' and '>' on tags that shr doesn't
+          ;; understand; e.g. replace '<3', '<-', and such with &lt;
+          (goto-char newStart)
+          (while (re-search-forward "<\\(/\\)?\\([a-zA-Z0-9-]+\\)" nil t)
+            (if (not (member (match-string-no-properties 2) erc-hipchatify-tags))
+                (replace-match (concat "&lt;"
+                                       (match-string-no-properties 1)
+                                       (match-string-no-properties 2)))))
           ;; replace bamboo img tags with hipchat emoticons
           (goto-char newStart)
           (while (search-forward "<img src=\"https://bamboo.bb-inf.net/images/iconsv4/icon-build-queued.png\" alt=\"icon-build-queued.png\">" nil t)
@@ -180,9 +235,6 @@ messages."
              (format " <img alt=\"%s\" src=\"%s\"/>"
                      (match-string-no-properties 1)
                      (match-string-no-properties 1))))
-          ;; replace '<3', '<-', and such with &lt;
-          (while (re-search-forward "<\\([-0-9/]+\\)" nil t)
-            (replace-match (concat "&lt;" (match-string-no-properties 1))))
           ;; replace hipchat emoticons contained in parentheses
           (when erc-hipchatify--icons
             (goto-char newStart)
