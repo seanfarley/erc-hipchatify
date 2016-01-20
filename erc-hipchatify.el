@@ -1,10 +1,12 @@
 ;;; erc-hipchatify.el --- Provide emoticons and html rendering for HipChat
 
-;; Copyright (C) 2015  Sean Farley
+;; Copyright (C) 2015-2016 Sean Farley
 
 ;; Author: Sean Farley <sean@farley.io>
 ;; Version: 0.1
-;; Keywords: hipchat multimedia
+;; URL: https://bitbucket.org/seanfarley/erc-hipchatify
+;; Package-Requires: ((emacs "24.2") (s "1.10.0") (company "0.8.11") (alert "1.2") (request "0.2.0") (flx-ido "0.6.1"))
+;; Keywords: erc bitlbee hipchat multimedia
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -34,13 +36,13 @@
 ;;
 ;; Code:
 
+(require 'erc)
+(require 'shr)
 
+(require 's)
 (require 'alert) ;; TODO: figure out how to use native erc notifications
 (require 'company)
-(require 'erc)
 (require 'request)
-(require 's)
-(require 'shr)
 (require 'flx-ido)
 
 (defgroup erc-hipchatify nil
@@ -360,4 +362,5 @@ and appends ')'"
      t))
 
 (provide 'erc-hipchatify)
+
 ;;; erc-hipchatify.el ends here
