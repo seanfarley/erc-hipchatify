@@ -5,7 +5,7 @@
 ;; Author: Sean Farley <sean@farley.io>
 ;; Version: 0.1
 ;; URL: https://bitbucket.org/seanfarley/erc-hipchatify
-;; Package-Requires: ((emacs "24.2") (s "1.10.0") (company "0.8.11") (alert "1.2") (request "0.2.0") (flx-ido "0.6.1"))
+;; Package-Requires: ((emacs "24.4") (s "1.10.0") (company "0.8.11") (alert "1.2") (request "0.2.0") (flx-ido "0.6.1"))
 ;; Keywords: erc bitlbee hipchat multimedia
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 ;;; Commentary:
 ;;
 ;; Show hipchat emoticons and render html (along with images) in erc buffers.
-;; Requires Emacs 24.2
+;; Requires Emacs 24.4
 ;;
 ;; (require 'erc-hipchatify)
 ;; (add-to-list 'erc-modules 'hipchatify)
@@ -44,6 +44,8 @@
 (require 'company)
 (require 'request)
 (require 'flx-ido)
+(require 'subr-x)
+(require 'cl-lib)
 
 (defgroup erc-hipchatify nil
   "Enable hipchatify."
