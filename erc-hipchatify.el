@@ -34,7 +34,7 @@
 ;; Since this plugin wraps `shr-render-region', it benefits from asynchronous
 ;; downloading.  To rescale images, set `shr-max-image-proportion'.
 ;;
-;; Code:
+;;; Code:
 
 (require 'erc)
 (require 'shr)
@@ -52,23 +52,22 @@
   :group 'erc)
 
 (defcustom erc-hipchatify-token nil
-  "The token to which we make api calls, created at
-https://atlassian.hipchat.com/account/api"
+  "The token to which we make api calls, created at https://atlassian.hipchat.com/account/api."
   :group 'erc-hipchatify
   :type 'string)
 
 (defcustom erc-hipchatify-server "localhost"
-  "The name of the HipChat BitlBee server"
+  "The name of the HipChat BitlBee server."
   :group 'erc-hipchatify
   :type 'string)
 
 (defcustom erc-hipchatify-mention-channels nil
-  "The name of the HipChat BitlBee channels for @mention replacement"
+  "The name of the HipChat BitlBee channels for @mention replacement."
   :group 'erc-hipchatify
   :type 'list)
 
 (defvar erc-hipchatify--icons nil
-  "Private hash table of HipChat emoticons")
+  "Private hash table of HipChat emoticons.")
 
 (defcustom erc-hipchatify-tags '("html"
                                  "body"
@@ -114,11 +113,13 @@ https://atlassian.hipchat.com/account/api"
                                  "title"
                                  "font"
                                  "table")
-  "The list of tags supported by shr; unknown tags will be escaped"
+  "The list of tags supported by shr; unknown tags will be escaped."
   :group 'erc-hipchatify
   :type 'list)
 
 (defun erc-hipchatify--process-request (data)
+  "Process the batched downloading of the emoticons.
+Argument DATA is one part of the batched download."
   (let ((startIndex (assoc-default 'startIndex data))
         (maxResults (assoc-default 'maxResults data))
         (nextUrl    (assoc-default 'next (assoc-default 'links data))))
@@ -131,6 +132,8 @@ https://atlassian.hipchat.com/account/api"
       (erc-hipchatify--request-icons nextUrl))))
 
 (defun erc-hipchatify--request-icons (&optional url)
+  "Create request for emoticons.
+Optional argument URL is location to download emoticons."
   (request
    (or url "https://api.hipchat.com/v2/emoticon")
    :params `(("auth_token" . ,erc-hipchatify-token)
@@ -145,6 +148,9 @@ https://atlassian.hipchat.com/account/api"
                  (erc-hipchatify--process-request data))))))
 
 (defun erc-hipchatify-connect (server nick)
+  "Hook for erc-connect.
+Argument SERVER for erc-hook to connect.
+Argument NICK for username."
   (when (and erc-hipchatify-token (string-equal server erc-hipchatify-server))
     (setq erc-hipchatify--icons (make-hash-table :test 'equal))
     ;; apparently these are missing?
@@ -153,8 +159,10 @@ https://atlassian.hipchat.com/account/api"
     (erc-hipchatify--request-icons)))
 
 (defun erc-hipchatify-pre-hook (string)
-  "Doesn't display anything from <Link> since it's mostly
-garabled html; we'll be rendering most of that stuff ourselves"
+  "Suppress displaying <Link> and <Bamboo>.
+It's mostly garabled html and we'll be rendering most of that
+stuff ourselves.
+Argument STRING incoming message."
   (cond
    ((s-starts-with? "<Link>" string)
     (setq erc-insert-this nil))
@@ -162,8 +170,8 @@ garabled html; we'll be rendering most of that stuff ourselves"
     (setq erc-insert-this nil))))
 
 (defun erc-hipchatify-notify-here ()
-  "Check for '@here' in the message and alert the user if the
-window isn't in focus / visible"
+  "Check for '@here' in the message.
+Alert the user if the window isn't in focus or visible."
   (save-excursion
     ;; use the fact that erc leaves the buffer narrowed so we can extract the
     ;; string, we substract 1 from point-max so we don't get an extra newline
@@ -184,9 +192,10 @@ window isn't in focus / visible"
                 (alert msg :title usr)))))))
 
 (defun erc-hipchatify-render-html ()
-  "Modify the buffer to replace (icon) with an html img tag, then
-render the whole message. For some text emoticons, such
-as (shrug) we just use the actual text-based representation.
+  "Modify the buffer to replace (icon) with an html tag.
+We then render the whole message with `shr-render'. For some text
+emoticons, such as (shrug) we just use the actual text-based
+representation.
 
 Also, skip messages that don't begin with '<' since those are irc
 messages."
@@ -284,8 +293,10 @@ into `shr-render-region'. Is this method even needed?"
   nil)
 
 (defun erc-hipchatify-icon-company-backend (command &optional arg &rest ignored)
-  "A company backend that uses the keys from the icon hash table
-and appends ')'"
+  "A company backend that use the icon hash table.
+Argument COMMAND key for hash table.
+Optional argument ARG first few letters typed.
+Optional argument IGNORED ignored input."
   (interactive (list 'interactive))
   (cl-case command
     (interactive (company-begin-backend 'erc-hipchatify-icon-company-backend))
@@ -299,40 +310,57 @@ and appends ')'"
                       (hash-table-keys erc-hipchatify--icons))))))
 
 (defun erc-hipchatify-mode-hook ()
-  "Turn on company mode and register our backend"
+  "Turn on company mode and register our backend."
   (setq-local company-auto-complete-chars '(?\())
   (add-to-list 'company-backends 'erc-hipchatify-icon-company-backend)
   (company-mode-on))
 
 (defun erc-cmd-ANIM (&rest msg)
+  "Define /anim for hipchat.
+Optional argument MSG message to send."
   (when msg
       (erc-send-message (concat "/anim " (mapconcat 'identity msg " ")))))
 
 (defun erc-cmd-GIF (&rest msg)
+  "Define /gif for hipchat.
+Optional argument MSG message to send."
   (when msg
       (erc-send-message (concat "/gif " (mapconcat 'identity msg " ")))))
 
 (defun erc-cmd-GIPHY (&rest msg)
+  "Define /giphy for hipchat.
+Optional argument MSG message to send."
   (when msg
       (erc-send-message (concat "/giphy " (mapconcat 'identity msg " ")))))
 
 (defun erc-cmd-IMG (&rest msg)
+  "Define /img for hipchat.
+Optional argument MSG message to send."
   (when msg
       (erc-send-message (concat "/img " (mapconcat 'identity msg " ")))))
 
 (defun erc-cmd-MEME (&rest msg)
+  "Define /meme for hipchat.
+Optional argument MSG message to send."
   (when msg
       (erc-send-message (concat "/meme " (mapconcat 'identity msg " ")))))
 
 (defun erc-cmd-CODE (&rest msg)
+  "Define /code for hipchat.
+Optional argument MSG message to send."
   (when msg
       (erc-send-message (concat "/code " (mapconcat 'identity msg " ")))))
 
 (defun erc-cmd-QUOTE (&rest msg)
+  "Define /quote for hipchat.
+Optional argument MSG message to send."
   (when msg
       (erc-send-message (concat "/quote " (mapconcat 'identity msg " ")))))
 
 (defun erc-hipchatify-mention-send-modify (msg)
+  "Append '@' to nicks.
+But only in channels listed in `erc-hipchatify-mention-channels'.
+Argument MSG message to send."
   (when (member (buffer-name) erc-hipchatify-mention-channels)
     (setq erc-send-this nil)
     (erc-send-message
