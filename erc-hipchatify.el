@@ -344,24 +344,23 @@ and appends ')'"
                                msg))))
 
 ;;;###autoload
-(eval-after-load 'erc
-  '(define-erc-module hipchatify nil
-     "Show hipchat emoticons and render html"
-     ((add-hook 'erc-after-connect 'erc-hipchatify-connect t)
-      (add-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
-      (add-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
-      (add-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
-      (add-hook 'erc-send-modify-hook 'erc-hipchatify-render-html)
-      (add-hook 'erc-send-pre-hook 'erc-hipchatify-mention-send-modify)
-      (add-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
-     ((remove-hook 'erc-after-connect 'erc-hipchatify-connect)
-      (remove-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
-      (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
-      (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
-      (remove-hook 'erc-send-modify-hook 'erc-hipchatify-render-html)
-      (remove-hook 'erc-send-pre-hook 'erc-hipchatify-mention-send-modify)
-      (remove-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
-     t))
+(define-erc-module hipchatify nil
+  "Show hipchat emoticons and render html"
+  ((add-hook 'erc-after-connect 'erc-hipchatify-connect t)
+   (add-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
+   (add-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
+   (add-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
+   (add-hook 'erc-send-modify-hook 'erc-hipchatify-render-html)
+   (add-hook 'erc-send-pre-hook 'erc-hipchatify-mention-send-modify)
+   (add-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
+  ((remove-hook 'erc-after-connect 'erc-hipchatify-connect)
+   (remove-hook 'erc-insert-pre-hook 'erc-hipchatify-pre-hook)
+   (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-notify-here)
+   (remove-hook 'erc-insert-modify-hook 'erc-hipchatify-render-html)
+   (remove-hook 'erc-send-modify-hook 'erc-hipchatify-render-html)
+   (remove-hook 'erc-send-pre-hook 'erc-hipchatify-mention-send-modify)
+   (remove-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
+  t)
 
 (provide 'erc-hipchatify)
 
