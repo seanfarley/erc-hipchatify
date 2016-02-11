@@ -205,7 +205,7 @@ messages."
           ;; before we do anything, escape '<' and '>' on tags that shr doesn't
           ;; understand; e.g. replace '<3', '<-', and such with &lt;
           (goto-char newStart)
-          (while (re-search-forward "<\\(/\\)?\\([a-zA-Z0-9-]+\\)" nil t)
+          (while (re-search-forward "<\\(/\\)?\\(\\([\s\n]\\|[^ \t\r\n\v\f]+\\)\\)" nil t)
             (if (not (member (match-string-no-properties 2) erc-hipchatify-tags))
                 (replace-match (concat "&lt;"
                                        (match-string-no-properties 1)
