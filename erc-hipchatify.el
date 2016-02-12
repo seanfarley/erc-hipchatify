@@ -125,7 +125,9 @@ Argument DATA is one part of the batched download."
         (nextUrl    (assoc-default 'next (assoc-default 'links data))))
     (mapcar
      (lambda (x)
-       (puthash (assoc-default 'shortcut x) (assoc-default 'url x) erc-hipchatify--icons))
+       (puthash (concat "(" (assoc-default 'shortcut x) ")")
+                (assoc-default 'url x)
+                erc-hipchatify--icons))
      (assoc-default 'items data))
     (message "Finished downloading HipChat emoticons starting from index %d" startIndex)
     (when nextUrl
@@ -154,8 +156,8 @@ Argument NICK for username."
   (when (and erc-hipchatify-token (string-equal server erc-hipchatify-server))
     (setq erc-hipchatify--icons (make-hash-table :test 'equal))
     ;; apparently these are missing?
-    (puthash "thumbsup" "https://dujrsrsgsd3nh.cloudfront.net/img/emoticons/thumbs_up.png" erc-hipchatify--icons)
-    (puthash "thumbsdown" "https://dujrsrsgsd3nh.cloudfront.net/img/emoticons/thumbs_down.png" erc-hipchatify--icons)
+    (puthash "(thumbsup)" "https://dujrsrsgsd3nh.cloudfront.net/img/emoticons/thumbs_up.png" erc-hipchatify--icons)
+    (puthash "(thumbsdown)" "https://dujrsrsgsd3nh.cloudfront.net/img/emoticons/thumbs_down.png" erc-hipchatify--icons)
     (erc-hipchatify--request-icons)))
 
 (defun erc-hipchatify-pre-hook (string)
@@ -251,15 +253,15 @@ messages."
           ;; replace hipchat emoticons contained in parentheses
           (when erc-hipchatify--icons
             (goto-char newStart)
-            (while (re-search-forward "(\\([a-zA-Z0-9_]+\\))" nil t)
+            (while (re-search-forward "\\(([a-zA-Z0-9_]+)\\)" nil t)
               (let* ((hp-shortcut (match-string-no-properties 1))
                      (hp-link (gethash hp-shortcut erc-hipchatify--icons)))
                 (cond
-                 ((string-equal hp-shortcut "shrug")
+                 ((string-equal hp-shortcut "(shrug)")
                   (replace-match "¯\\\\_(ツ)_/¯"))
-                 ((string-equal hp-shortcut "tableflip")
+                 ((string-equal hp-shortcut "(tableflip)")
                   (replace-match "(╯°□°）╯︵ ┻━┻"))
-                 ((string-equal hp-shortcut "owlflip")
+                 ((string-equal hp-shortcut "(owlflip)")
                   (replace-match "(ʘ∇ʘ)ク 彡 ┻━┻"))
                  (hp-link
                   (replace-match
