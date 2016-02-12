@@ -5,7 +5,7 @@
 ;; Author: Sean Farley <sean@farley.io>
 ;; Version: 0.1
 ;; URL: https://bitbucket.org/seanfarley/erc-hipchatify
-;; Package-Requires: ((emacs "24.4") (s "1.10.0") (company "0.8.11") (alert "1.2") (request "0.2.0") (flx-ido "0.6.1"))
+;; Package-Requires: ((emacs "24.4") (s "1.10.0") (alert "1.2") (request "0.2.0"))
 ;; Keywords: erc bitlbee hipchat multimedia
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -41,9 +41,7 @@
 
 (require 's)
 (require 'alert) ;; TODO: figure out how to use native erc notifications
-(require 'company)
 (require 'request)
-(require 'flx-ido)
 (require 'subr-x)
 (require 'cl-lib)
 
@@ -294,28 +292,23 @@ This method is defined in `erc-button' but throws a huge wrench
 into `shr-render-region'. Is this method even needed?"
   nil)
 
-(defun erc-hipchatify-icon-company-backend (command &optional arg &rest ignored)
-  "A company backend that use the icon hash table.
-Argument COMMAND key for hash table.
-Optional argument ARG first few letters typed.
-Optional argument IGNORED ignored input."
-  (interactive (list 'interactive))
-  (cl-case command
-    (interactive (company-begin-backend 'erc-hipchatify-icon-company-backend))
-    (prefix (and (eq major-mode 'erc-mode)
-                 (when (looking-back "([[:alnum:]]*")
-                 (match-string 0))))
-    (candidates
-     (flx-flex-match arg
-                     (mapcar
-                      (lambda (x) (concat "(" x ")"))
-                      (hash-table-keys erc-hipchatify--icons))))))
+(defun erc-hipchatify-completion-at-point ()
+  "Autocomplete hipchat emoticons."
+  (let ((bounds (bounds-of-thing-at-point 'word)))
+    (when bounds
+      (let* ((start (1- (car bounds)))
+             (end (cdr bounds))
+             (word (buffer-substring-no-properties start end)))
+        (list start
+              end
+              (hash-table-keys erc-hipchatify--icons)
+              :exclusive 'no
+              :predicate (lambda (x) (s-starts-with? "(" x)))))))
 
 (defun erc-hipchatify-mode-hook ()
   "Turn on company mode and register our backend."
-  (setq-local company-auto-complete-chars '(?\())
-  (add-to-list 'company-backends 'erc-hipchatify-icon-company-backend)
-  (company-mode-on))
+  (add-hook 'completion-at-point-functions
+            'erc-hipchatify-completion-at-point nil t))
 
 (defun erc-cmd-ANIM (&rest msg)
   "Define /anim for hipchat.
