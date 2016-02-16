@@ -121,7 +121,7 @@ Argument DATA is one part of the batched download."
   (let ((startIndex (assoc-default 'startIndex data))
         (maxResults (assoc-default 'maxResults data))
         (nextUrl    (assoc-default 'next (assoc-default 'links data))))
-    (mapcar
+    (mapc
      (lambda (x)
        (puthash (concat "(" (assoc-default 'shortcut x) ")")
                 (assoc-default 'url x)
