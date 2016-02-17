@@ -263,7 +263,7 @@ messages."
                   (replace-match "(ʘ∇ʘ)ク 彡 ┻━┻"))
                  (hp-link
                   (replace-match
-                   (format "<img alt=\"(%s)\" src=\"%s\" />" hp-shortcut hp-link)))))))
+                   (format "<img alt=\"%s\" src=\"%s\" />" hp-shortcut hp-link)))))))
           ;; subtract the length of the username from shr-width so that
           ;; wrapping works
           (setq shr-width (1- (- oldWidth (- newStart oldStart))))
