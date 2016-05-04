@@ -385,6 +385,39 @@ Argument MSG message to send."
    (remove-hook 'erc-mode-hook 'erc-hipchatify-mode-hook))
   t)
 
+;; fix bug when buffer is not shown currently to still respect the rescaling
+(defun shr-rescale-image (data content-type &optional width height)
+  "Rescale DATA, if too big, to fit the current buffer.
+WIDTH and HEIGHT are the sizes given in the HTML data, if any."
+  (if (not (fboundp 'imagemagick-types))
+      (create-image data nil t :ascent 100)
+    (let* ((edges (window-inside-pixel-edges
+                   (or (get-buffer-window (current-buffer))
+                       (frame-selected-window))))
+           (max-width (truncate (* shr-max-image-proportion
+                                   (- (nth 2 edges) (nth 0 edges)))))
+           (max-height (truncate (* shr-max-image-proportion
+                                    (- (nth 3 edges) (nth 1 edges))))))
+      (when (or (and width
+                     (> width max-width))
+                (and height
+                     (> height max-height)))
+        (setq width nil
+              height nil))
+      (if (and width height)
+          (create-image
+           data 'imagemagick t
+           :ascent 100
+           :width width
+           :height height
+           :format content-type)
+        (create-image
+         data 'imagemagick t
+         :ascent 100
+         :max-width max-width
+         :max-height max-height
+         :format content-type)))))
+
 (provide 'erc-hipchatify)
 
 ;;; erc-hipchatify.el ends here
