@@ -202,9 +202,7 @@ messages."
   (save-excursion
     ;; use the fact that erc leaves the buffer narrowed so we can extract the
     ;; string, we substract 1 from point-max so we don't get an extra newline
-    (let* ((oldStart (point-min))
-           (oldWidth shr-width)
-           (origmsg (buffer-substring-no-properties (point-min) (1- (point-max)))))
+    (let* ((origmsg (buffer-substring-no-properties (point-min) (1- (point-max)))))
       (when (s-starts-with? "<" origmsg)
         ;; now, search for the first "> " which indicates the end of the nickname
         ;; and start of the message (adding two which is the length of "> ")
@@ -266,9 +264,7 @@ messages."
                    (format "<img alt=\"%s\" src=\"%s\" />" hp-shortcut hp-link)))))))
           ;; subtract the length of the username from shr-width so that
           ;; wrapping works
-          (setq shr-width (1- (- oldWidth (- newStart oldStart))))
           (shr-render-region newStart (1- (point-max)))
-          (setq shr-width oldWidth)
           ;; rendering the region adds two lines before and after?
           (goto-char newStart)
           (while (re-search-forward "\n\n" nil t)
