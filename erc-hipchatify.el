@@ -54,6 +54,11 @@
   :group 'erc-hipchatify
   :type 'string)
 
+(defcustom erc-hipchatify-email nil
+  "The email associated with the hipchat account for making some api calls."
+  :group 'erc-hipchatify
+  :type 'string)
+
 (defcustom erc-hipchatify-server "localhost"
   "The name of the HipChat BitlBee server."
   :group 'erc-hipchatify
@@ -164,6 +169,18 @@ It's mostly garabled html and we'll be rendering most of that
 stuff ourselves.
 Argument STRING incoming message."
   (cond
+   ((s-contains?
+     "Update HipChat to view files (https://www.hipchat.com/downloads)"
+     string)
+    (setq erc-insert-this nil))
+   ((s-contains?
+     "We've changed how we handle files. Update HipChat to get back to viewing them. Or just click the file's name above and log in."
+     string)
+    (setq erc-insert-this nil))
+   ((s-contains?
+     "Learn more (https://confluence.atlassian.com/display/HIPCHAT/Share+files)"
+     string)
+    (setq erc-insert-this nil))
    ((s-starts-with? "<Link>" string)
     (setq erc-insert-this nil))
    ((s-starts-with? "<Bamboo>" string)
@@ -217,6 +234,14 @@ messages."
                 (replace-match (concat "&lt;"
                                        (match-string-no-properties 1)
                                        (match-string-no-properties 2)))))
+          ;; add username to file links to sacve a step
+          (when erc-hipchatify-email
+              (goto-char newStart)
+              (while (re-search-forward "https://www\\.hipchat\\.com\\(/file/[a-f0-9]+\\)" nil t)
+                (replace-match
+                 (format "https://www.hipchat.com/login_select_auth?email=%s&d=%s"
+                         (url-hexify-string erc-hipchatify-email)
+                         (url-hexify-string (match-string-no-properties 1))))))
           ;; replace bamboo img tags with hipchat emoticons
           (goto-char newStart)
           (while (search-forward "<img src=\"https://bamboo.bb-inf.net/images/iconsv4/icon-build-queued.png\" alt=\"icon-build-queued.png\">" nil t)
