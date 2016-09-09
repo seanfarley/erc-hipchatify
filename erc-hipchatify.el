@@ -146,7 +146,9 @@ Optional argument URL is location to download emoticons."
    :parser 'json-read
    :error (function* (lambda (&key error-thrown &allow-other-keys&rest _)
                        (message "erc-hipchatify error: %S" error-thrown)))
-   :status-code '((500 . (lambda (&rest _) (message "erc-hipchatify got an internal server error (500) from HipChat."))))
+   :status-code '((500 . (lambda (&rest _) (message "erc-hipchatify got an internal server error (500) from HipChat.")))
+                  (401 . (lambda (&rest _) (message "erc-hipchatify got an unauthorized oauth session (401) from HipChat. Check your token!")))
+                  )
    :success (function*
              (lambda (&key data &allow-other-keys)
                (when data
