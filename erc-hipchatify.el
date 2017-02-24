@@ -188,6 +188,13 @@ Argument STRING incoming message."
    ((s-starts-with? "<Bamboo>" string)
     (setq erc-insert-this nil))))
 
+(defun erc-hipchatify--start-pos (origmsg)
+  "Return the start position of the message ORIGMSG.
+The message from ERC is usually '<username> blah' but sometimes
+there is a newline instead of a space. Therefore, we write a
+method to contain this logic."
+  (+ 2 (s-index-of (car (s-match ">[\t\n ]" origmsg)) origmsg)))
+
 (defun erc-hipchatify-notify-here ()
   "Check for '@here' in the message.
 Alert the user if the window isn't in focus or visible."
@@ -198,7 +205,7 @@ Alert the user if the window isn't in focus or visible."
       (if (s-starts-with? "<" origmsg)
           ;; now, search for the first "> " which indicates the end of the nickname
           ;; and start of the message (adding two which is the length of "> ")
-          (let* ((startPos (+ 2 (s-index-of "> " origmsg)))
+          (let* ((startPos (erc-hipchatify--start-pos origmsg))
                  (newStart (+ (point-min) startPos))
                  (msg (substring origmsg startPos))
                  (usr (substring origmsg 1 (- startPos 2))))
@@ -225,7 +232,7 @@ messages."
       (when (s-starts-with? "<" origmsg)
         ;; now, search for the first "> " which indicates the end of the nickname
         ;; and start of the message (adding two which is the length of "> ")
-        (let* ((startPos (+ 2 (s-index-of "> " origmsg)))
+        (let* ((startPos (erc-hipchatify--start-pos origmsg))
                (newStart (+ (point-min) startPos))
                (msg (substring origmsg startPos)))
           ;; before we do anything, escape '<' and '>' on tags that shr doesn't
