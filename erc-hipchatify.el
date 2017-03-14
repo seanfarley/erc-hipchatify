@@ -280,6 +280,13 @@ messages."
              (format " <img alt=\"%s\" src=\"%s\"/>"
                      (match-string-no-properties 1)
                      (match-string-no-properties 1))))
+          (while (re-search-forward "[^\"]\\(http[s]*://plus.google.com/photos/albums/[^/\s\n\t]+\\)[\s\n\t$]" nil t)
+            (replace-match
+             (format " <img alt=\"%s\" src=\"%s\"/> "
+                     (match-string-no-properties 1)
+                     (match-string-no-properties 1))))
+          ;; link that ends in an image extension
+          (goto-char (1- newStart))
           ;; replace hipchat emoticons contained in parentheses
           (when erc-hipchatify--icons
             (goto-char newStart)
